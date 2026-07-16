@@ -83,7 +83,13 @@ export default function QuestionDetails() {
 
   async function handleStatusChange(e) {
     const status = e.target.value
-    setQuestion((q) => ({ ...q, status }))
+    setQuestion((q) => ({
+      ...q,
+      status,
+      ...(status === 'Revision Needed'
+        ? { revision_required: true, next_revision_at: new Date().toISOString() }
+        : null),
+    }))
     try {
       await questionService.updateQuestionStatus(id, status)
       toast.success(`Marked as ${status}`)

@@ -37,7 +37,22 @@ export default function QuestionForm({ initialValue, onSubmit, submitLabel = 'Sa
   }, [])
 
   useEffect(() => {
-    if (initialValue) setForm((f) => ({ ...f, ...initialValue }))
+    if (initialValue) {
+      // DB columns use null for "empty" (problem_url, confidence_level,
+      // description, notes); text inputs need '' instead, or a later
+      // .trim() call on a null value throws.
+      setForm((f) => ({
+        ...f,
+        ...initialValue,
+        title: initialValue.title ?? '',
+        problem_url: initialValue.problem_url ?? '',
+        confidence_level: initialValue.confidence_level ?? '',
+        description: initialValue.description ?? '',
+        notes: initialValue.notes ?? '',
+        topicIds: initialValue.topicIds ?? f.topicIds,
+        tagIds: initialValue.tagIds ?? f.tagIds,
+      }))
+    }
   }, [initialValue])
 
   function update(field) {
@@ -46,7 +61,7 @@ export default function QuestionForm({ initialValue, onSubmit, submitLabel = 'Sa
 
   function validate() {
     const next = {}
-    if (!form.title.trim()) next.title = 'Title is required.'
+    if (!form.title?.trim()) next.title = 'Title is required.'
     if (form.problem_url && !/^https?:\/\//i.test(form.problem_url)) {
       next.problem_url = 'URL must start with http:// or https://'
     }
@@ -62,10 +77,10 @@ export default function QuestionForm({ initialValue, onSubmit, submitLabel = 'Sa
     setSubmitting(true)
     try {
       await onSubmit({
-        title: form.title.trim(),
+        title: (form.title ?? '').trim(),
         difficulty: form.difficulty,
         platform: form.platform,
-        problem_url: form.problem_url.trim() || null,
+        problem_url: (form.problem_url ?? '').trim() || null,
         status: form.status,
         confidence_level: form.confidence_level || null,
         description: form.description || null,

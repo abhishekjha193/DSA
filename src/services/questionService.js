@@ -152,6 +152,14 @@ export async function updateQuestionStatus(id, status) {
     patch.solved_at = new Date().toISOString()
     patch.is_solved = true
   }
+  if (status === 'Revision Needed') {
+    // The Revisions page (Due Today / Overdue) only surfaces questions
+    // where revision_required is true AND next_revision_at is set — so
+    // manually flagging a question this way must set both, not just the
+    // status label, or it silently disappears everywhere else in the app.
+    patch.revision_required = true
+    patch.next_revision_at = new Date().toISOString()
+  }
   const { error } = await supabase.from('questions').update(patch).eq('id', id)
   if (error) throw error
 }
